@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import UIProvider from "./context/UIContext";
-import Routes from "./routes/Routes";
+import RouteSwitcher from "./routes/Routes";
 
 const App = () => {
   const [openBackdrop, setOpenBackdrop] = useState(false);
@@ -14,7 +14,7 @@ const App = () => {
       setRenderedBoard={setRenderedBoard}
     >
           <div className="App">
-            <Routes />
+            <RouteSwitcher />
           </div>
        
     
