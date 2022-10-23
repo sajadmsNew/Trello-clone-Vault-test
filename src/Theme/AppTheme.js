@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState,  } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { AppTheme, appStyles } from "./styles";

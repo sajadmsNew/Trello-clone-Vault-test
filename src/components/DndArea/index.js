@@ -113,6 +113,7 @@ const  createNewList = async (title) => {
       updatedState.lists[listId] = list;
       updatedState.listOrder.push(listId);
       setState(updatedState);
+      console.log('create a new list ',updatedState);
       window.localStorage.setItem('list',JSON.stringify({
         list: list,
         listOrder: updatedState.listOrder,
@@ -127,6 +128,7 @@ const  createNewList = async (title) => {
         [listId]: list,
       };
       updatedState.listOrder = [listId];
+      console.log('create a new list if lists are empty ',updatedState);
       setState(updatedState);
       window.localStorage.setItem('list',JSON.stringify({
         list: list,
@@ -140,7 +142,7 @@ const  createNewList = async (title) => {
     let taskCount;
     let taskId;
     let task;
-     console.log('this is the task state',updatedState)
+    //  console.log('this is the task state',updatedState)
     if (updatedState.tasks !== undefined) {
       taskCount = Object.keys(updatedState.tasks).length;
       taskId = `task-${taskCount + 1}`;
@@ -189,18 +191,16 @@ const  handleNameInputClose = () => {
 
 
     const { classes } = props;
-    return (
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="all-lists" direction="horizontal" type="list">
+    return ( <DragDropContext onDragEnd={onDragEnd}>
+               <Droppable droppableId="all-lists" direction="horizontal" type="list">
           {(provided) => (
             <div
               style={{ display: "flex" }}
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {state.listOrder &&
-                state.lists &&
-                state.listOrder.map((listId, index) => {
+              {state.lists && state.listOrder.map((listId, index) => {
+                  console.log('this is the data on lists ',state)
                   const list = state.lists[listId];
                   if (list && list.id) {
                     return (
