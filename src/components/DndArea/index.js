@@ -1,18 +1,57 @@
-import React, { useState } from "react";
+import React from "react";
 import shortid from "shortid";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { IconButton, Grid, Typography } from "@material-ui/core";
 import { withStyles } from "@material-ui/core/styles";
 import { Add } from "@material-ui/icons";
 import { AddColModal, ListCol } from "../index";
-
 import { canvasStyles } from "./styles";
 
-const DndCanvas =(props)=> {
- 
-  const [state, setState]=useState({anchorEl: null})
+class DndCanvas extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      anchorEl: null,
+    };
+  }
+  componentDidUpdate(prevProps) {
+    const board = this.context.renderedBoard;
+    if (prevProps.board !== board) {
+      if (board) {
+        if (board.lists) {
+          this.setState({
+            listOrder: board.listOrder,
+            lists: board.lists,
+          });
+          if (board.tasks) {
+            this.setState({
+              tasks: board.tasks,
+            });
+          }
+        }
+      }
+    }
+  }
+  componentDidMount() {
+    if (this.context.renderedBoard) {
+      const board = this.context.renderedBoard;
+      if (board) {
+        if (board.lists) {
+          this.setState({
+            listOrder: board.listOrder,
+            lists: board.lists,
+          });
+          if (board.tasks) {
+            this.setState({
+              tasks: board.tasks,
+            });
+          }
+        }
+      }
+    }
+  }
 
- const onDragEnd = (result) => {
+  onDragEnd = (result) => {
     const { destination, source, draggableId, type } = result;
     // no list to drop
     if (!destination) {
@@ -29,21 +68,20 @@ const DndCanvas =(props)=> {
 
     // triggers when reordering lists
     if (type === "list") {
-      const newListOrder = Array.from(state.listOrder);
+      const newListOrder = Array.from(this.state.listOrder);
       newListOrder.splice(source.index, 1);
       newListOrder.splice(destination.index, 0, draggableId);
 
       const updatedState = {
-        ...state,
+        ...this.state,
         listOrder: newListOrder,
       };
-      setState(updatedState);
-     
+      this.setState(updatedState);
       return;
     }
 
-    const home = state.lists[source.droppableId];
-    const foreign = state.lists[destination.droppableId];
+    const home = this.state.lists[source.droppableId];
+    const foreign = this.state.lists[destination.droppableId];
 
     // triggers when reordering tasks in the same list
     if (home === foreign) {
@@ -57,13 +95,13 @@ const DndCanvas =(props)=> {
       };
 
       const newState = {
-        ...state,
+        ...this.state,
         lists: {
-          ...state.lists,
+          ...this.state.lists,
           [newHome.id]: newHome,
         },
       };
-      setState(newState);
+      this.setState(newState);
       return;
     }
 
@@ -88,21 +126,23 @@ const DndCanvas =(props)=> {
     };
 
     const newState = {
-      ...state,
+      ...this.state,
       lists: {
-        ...state.lists,
+        ...this.state.lists,
         [newHome.id]: newHome,
         [newForeign.id]: newForeign,
       },
     };
-    setState(newState);
+    this.setState(newState);
   };
 
-const  createNewList = async (title) => {
-    let updatedState = { ...state };
+  createNewList = async (title) => {
+    let updatedState = { ...this.state };
     console.log('this is the state for creatte ing a list',updatedState)
     const listId = shortid.generate();
     let list;
+    const board = this.context.renderedBoard;
+
     if (updatedState.lists !== undefined) {
       // board doesn't have any list
       list = {
@@ -112,8 +152,7 @@ const  createNewList = async (title) => {
       };
       updatedState.lists[listId] = list;
       updatedState.listOrder.push(listId);
-      setState(updatedState);
-      console.log('create a new list ',updatedState);
+      this.setState(updatedState);
       window.localStorage.setItem('list',JSON.stringify({
         list: list,
         listOrder: updatedState.listOrder,
@@ -128,8 +167,7 @@ const  createNewList = async (title) => {
         [listId]: list,
       };
       updatedState.listOrder = [listId];
-      console.log('create a new list if lists are empty ',updatedState);
-      setState(updatedState);
+      this.setState(updatedState);
       window.localStorage.setItem('list',JSON.stringify({
         list: list,
         listOrder: updatedState.listOrder,
@@ -137,12 +175,13 @@ const  createNewList = async (title) => {
     }
   };
 
- const createNewTask = (listId, title) => {
-    let updatedState = { ...state };
+  createNewTask = (listId, title) => {
+    let updatedState = { ...this.state };
     let taskCount;
     let taskId;
     let task;
-    //  console.log('this is the task state',updatedState)
+    const board = this.context.renderedBoard;
+     console.log('this is the task state',updatedState)
     if (updatedState.tasks !== undefined) {
       taskCount = Object.keys(updatedState.tasks).length;
       taskId = `task-${taskCount + 1}`;
@@ -154,7 +193,8 @@ const  createNewList = async (title) => {
       if (updatedState.lists[listId].taskIds)
         updatedState.lists[listId].taskIds.push(taskId);
       else updatedState.lists[listId].taskIds = [taskId];
-      setState(updatedState);
+      this.setState(updatedState);
+      console.log('this is the board state in task',board);
       window.localStorage.setItem('tasks',JSON.stringify({updatedState,task}))
     } else {
       taskCount = 0;
@@ -169,47 +209,49 @@ const  createNewList = async (title) => {
       if (updatedState.lists[listId].taskIds)
         updatedState.lists[listId].taskIds.push(taskId);
       else updatedState.lists[listId].taskIds = [taskId];
-      setState(updatedState);
+      this.setState(updatedState);
 
       window.localStorage.setItem('tasks',JSON.stringify({updatedState,task}))
     }
   };
 
-const  handleAddAnotherListButtonClick = (event) => {
-    setState({
-      ...state,
+  handleAddAnotherListButtonClick = (event) => {
+    this.setState({
+      ...this.state,
       anchorEl: event.currentTarget,
     });
   };
 
-const  handleNameInputClose = () => {
-    setState({
-      ...state,
+  handleNameInputClose = () => {
+    this.setState({
+      ...this.state,
       anchorEl: null,
     });
   };
 
-
-    const { classes } = props;
-    return ( <DragDropContext onDragEnd={onDragEnd}>
-               <Droppable droppableId="all-lists" direction="horizontal" type="list">
+  render() {
+    const { classes } = this.props;
+    return (
+      <DragDropContext onDragEnd={this.onDragEnd}>
+        <Droppable droppableId="all-lists" direction="horizontal" type="list">
           {(provided) => (
             <div
               style={{ display: "flex" }}
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {state.lists && state.listOrder.map((listId, index) => {
-                  console.log('this is the data on lists ',state)
-                  const list = state.lists[listId];
+              {this.state.listOrder &&
+                this.state.lists &&
+                this.state.listOrder.map((listId, index) => {
+                  const list = this.state.lists[listId];
                   if (list && list.id) {
                     return (
                       <ListCol
                         key={list.id}
                         list={list}
-                        taskMap={state.tasks}
+                        taskMap={this.state.tasks}
                         index={index}
-                        createNewTask={createNewTask}
+                        createNewTask={this.createNewTask}
                       />
                     );
                   }
@@ -217,7 +259,7 @@ const  handleNameInputClose = () => {
               {provided.placeholder}
               <div style={{ padding: "0px 8px" }}>
                 <IconButton
-                  onClick={(e) => handleAddAnotherListButtonClick(e)}
+                  onClick={(e) => this.handleAddAnotherListButtonClick(e)}
                   className={classes.addAnotherList}
                   aria-label="add-another-list"
                 >
@@ -231,9 +273,9 @@ const  handleNameInputClose = () => {
                   </Grid>
                 </IconButton>
                 <AddColModal
-                  anchorEl={state.anchorEl}
-                  handleClose={handleNameInputClose}
-                  createNewList={createNewList}
+                  anchorEl={this.state.anchorEl}
+                  handleClose={this.handleNameInputClose}
+                  createNewList={this.createNewList}
                 />
               </div>
             </div>
@@ -241,7 +283,7 @@ const  handleNameInputClose = () => {
         </Droppable>
       </DragDropContext>
     );
-  
+  }
 }
 
 export default withStyles(canvasStyles)(DndCanvas);
